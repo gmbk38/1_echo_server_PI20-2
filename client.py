@@ -1,18 +1,24 @@
-import socket
-from time import sleep
+from socket import *
+import sys
 
-sock = socket.socket()
-sock.setblocking(1)
-sock.connect(('localhost', 9092))
+host = 'localhost'
+port = 9092
+addr = (host,port)
 
-msg = input()
-sock.send(msg.encode())
-
-data = sock.recv(1024)
-
-sock.close()
-
-print(data.decode())
+udp_socket = socket(AF_INET, SOCK_DGRAM)
 
 
+data = input('Написать серверу: ')
+if not data :
+    udp_socket.close()
+    sys.exit(1)
 
+#encode - перекодирует введенные данные в байты, decode - обратно
+data = str.encode(data)
+udp_socket.sendto(data, addr)
+data = bytes.decode(data)
+data = udp_socket.recvfrom(1024)
+print(data)
+
+
+udp_socket.close()

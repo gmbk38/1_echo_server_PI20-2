@@ -1,26 +1,29 @@
-import socket
+from socketserver import *
 
-sock = socket.socket()
-sock.bind(('', 9092))
-sock.listen(0)
-conn, addr = sock.accept()
-print(addr)
+host = 'localhost'
+port = 9092
+addr = (host, port)
 
-msg = ''
+# обработчик запросов UDP подкласс DatagramRequestHandler
+# Этот класс работает аналогично классу TCP, за исключением того,
+# self.request состоит из пары данных и сокета клиента,
+# так как нет никакой связи адрес, клиент должен быть явно указан при отправке данных обратно через SendTo()
+class MyUDPHandler(DatagramRequestHandler):
 
-counter = 0
-while True:
-	data = conn.recv(1024)
-	#if not data:
-	#	break
-	msg += data.decode()
-	if counter == 0:
-		print(msg)
-		counter = 1
-	conn.send(data)
-	if data.decode() == "exit":
-		break
+    # функция handle делает всю работу, необходимую для обслуживания запроса.
+    def handle(self):
+        data = self.request[0]
+        socket = self.request[1]
+        print('client send: ', data)
 
-print(msg)
+        # sendto - отправка сообщения UDP
+        socket.sendto(b'Приветик от UDP сервера', self.client_address)
 
-conn.close()
+
+if __name__ == "__main__":
+    # Создаем экземпляр класса
+    server = UDPServer(addr, MyUDPHandler)
+
+    print('Сервер запущен, приветик')
+    # serve_forever - запускаем сервер
+    server.serve_forever()
